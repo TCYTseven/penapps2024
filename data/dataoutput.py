@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import timedelta
+import json
 
 # Read the CSV file
 df = pd.read_csv('input_data.csv', parse_dates=['Date'])
@@ -124,3 +125,10 @@ fig_volume.show()
 print("\nDetected Crash Periods:")
 for start, end in crashes:
     print(f"From {start} to {end}")
+    
+    crash_periods = [{"start": str(start), "end": str(end)} for start, end in crashes]
+
+json_filename = 'crash_periods.json';
+with open (json_filename, 'w') as json_file:
+    json.dump(crash_periods, json_file, indent=4);
+    
