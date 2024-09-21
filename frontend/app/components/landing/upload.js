@@ -3,20 +3,21 @@
 import { useState, useRef } from "react";
 import { RocketIcon, UploadIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation"; // Adjust this import if you're using a different version of Next.js
+import axios from "axios";
 
 export default function UploadCsv() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
-  const router = useRouter(); // Initialize the router
 
   const handleFileUpload = (event) => {
     const uploadedFile = event.target.files?.[0];
     if (uploadedFile) {
       setFile(uploadedFile);
-      startUpload();
+      startUpload(uploadedFile);
     }
   };
 
@@ -25,25 +26,43 @@ export default function UploadCsv() {
     const uploadedFile = event.dataTransfer.files?.[0];
     if (uploadedFile) {
       setFile(uploadedFile);
-      startUpload();
+      startUpload(uploadedFile);
     }
   };
 
-  const startUpload = () => {
+  const startUpload = async (fileToUpload) => {
     setUploading(true);
-    let progressTimer = setInterval(() => {
-      setProgress((oldProgress) => {
-        if (oldProgress >= 100) {
-          clearInterval(progressTimer);
-          setTimeout(() => {
-            setUploading(false);
-            router.push("/onboarding"); // Redirect after animation
-          }, 500);
-          return 100;
+    setProgress(0);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("file", fileToUpload);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setProgress(percentCompleted);
+          },
         }
-        return oldProgress + 25;
-      });
-    }, 300); // Quick progress speed for animation effect
+      );
+
+      setResults(response.data);
+      console.log("File processed successfully:", response.data);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      setError("Error uploading file. Please try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleClick = () => {
@@ -51,14 +70,14 @@ export default function UploadCsv() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen p-6 animated-bg">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 animated-bg">
       <div className="relative mb-12 text-center">
         <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-7xl font-extrabold animate-pulse">
           Finance Rocket
         </h1>
         <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-600 opacity-30 rounded-lg blur-sm"></div>
       </div>
-      <p className="text-gray-400 text-lg mt-2 text-center">
+      <p className="text-gray-400 text-lg mt-2 text-center mb-8">
         Your Financial Future, Ready for Launch
       </p>
 
@@ -66,7 +85,7 @@ export default function UploadCsv() {
         className={`border-2 border-dashed rounded-xl p-12 w-104 h-56 flex flex-col justify-center items-center cursor-pointer transition-transform transform hover:scale-105 hover:border-opacity-80 shadow-lg hover:shadow-purple-400 hover:shadow-xl ${
           file ? "border-white" : "border-gray-600"
         }`}
-        style={{ boxShadow: "0 4px 20px rgba(186, 85, 211, 0.5)" }} // Light purple drop shadow
+        style={{ boxShadow: "0 4px 20px rgba(186, 85, 211, 0.5)" }}
         onClick={handleClick}
         onDrop={handleDrop}
         onDragOver={(event) => event.preventDefault()}
@@ -124,9 +143,30 @@ export default function UploadCsv() {
         )}
       </div>
 
+      {error && <p className="text-red-500 mt-4">{error}</p>}
+
+      {results && (
+        <div className="mt-8 text-white">
+          <h2 className="text-2xl font-bold mb-4">Results:</h2>
+          <ul>
+            {Object.entries(results).map(([key, value]) => (
+              <li key={key} className="mb-2">
+                <strong>{key}:</strong> {value.substring(0, 100)}...
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <style jsx>{`
         .animated-bg {
-          background: linear-gradient(270deg, #0d1117, #161b22, #21262d, #161b22);
+          background: linear-gradient(
+            270deg,
+            #0d1117,
+            #161b22,
+            #21262d,
+            #161b22
+          );
           background-size: 400% 400%;
           animation: gradientAnimation 15s ease infinite;
         }

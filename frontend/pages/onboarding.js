@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Papa from "papaparse";
-import Cerebras from "@cerebras/cerebras_cloud_sdk";  // Import Cerebras SDK
+import Cerebras from "@cerebras/cerebras_cloud_sdk"; // Import Cerebras SDK
 
 export default function Debrief() {
   const [summary, setSummary] = useState(null);
@@ -10,15 +10,17 @@ export default function Debrief() {
 
   // Initialize Cerebras client
   const client = new Cerebras({
-    apiKey: "csk-3k6ykh******************",  // Your Cerebras API key
+    apiKey: "csk-3k6ykh******************", // Your Cerebras API key
   });
 
   // Function to fetch and parse CSV data
   const fetchCsvData = async () => {
     try {
-      const response = await fetch("https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/COF%20Historical%20Data.csv");  // Adjust the file path if necessary
+      const response = await fetch(
+        "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/COF%20Historical%20Data.csv"
+      ); // Adjust the file path if necessary
       const csvText = await response.text();
-      return csvText;  // Return the parsed CSV text
+      return csvText; // Return the parsed CSV text
     } catch (error) {
       console.error("Error fetching CSV file:", error);
       return null;
@@ -34,9 +36,11 @@ export default function Debrief() {
       const truncatedTokens = tokens.slice(0, 99); // Ensure we have less than 8000 tokens
       const truncatedCsvText = truncatedTokens.join(" ");
 
+      //send request to get csv data
+
       // Send request to Cerebras API using their SDK
       const completionCreateResponse = await client.chat.completions.create({
-        model: 'llama3.1-8b',
+        model: "llama3.1-8b",
         messages: [
           {
             role: "system",
@@ -64,11 +68,11 @@ export default function Debrief() {
     const parseAndSummarizeCsv = async () => {
       const csvData = await fetchCsvData(); // Fetch CSV data
       if (csvData) {
-        summarizeCsv(csvData);  // Summarize the fetched CSV data
+        summarizeCsv(csvData); // Summarize the fetched CSV data
       }
     };
 
-    parseAndSummarizeCsv();  // Call the function
+    parseAndSummarizeCsv(); // Call the function
   }, []);
 
   useEffect(() => {
@@ -89,17 +93,18 @@ export default function Debrief() {
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: 'linear-gradient(270deg, #0d1117, #161b22, #21262d, #161b22)',
-        backgroundSize: '400% 400%',
-        animation: 'gradientAnimation 15s ease infinite',
-        color: '#E0E0E0',
-        padding: '24px',
-        textAlign: 'center',
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        background:
+          "linear-gradient(270deg, #0d1117, #161b22, #21262d, #161b22)",
+        backgroundSize: "400% 400%",
+        animation: "gradientAnimation 15s ease infinite",
+        color: "#E0E0E0",
+        padding: "24px",
+        textAlign: "center",
       }}
     >
       <style>{`
@@ -109,22 +114,30 @@ export default function Debrief() {
           100% { background-position: 0% 50%; }
         }
       `}</style>
-      <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '24px' }}>
+      <h2
+        style={{ fontSize: "2.5rem", fontWeight: "bold", marginBottom: "24px" }}
+      >
         CSV Debrief
       </h2>
-      {loading && <p style={{ fontSize: '1.125rem' }}>Loading analysis...</p>}
+      {loading && <p style={{ fontSize: "1.125rem" }}>Loading analysis...</p>}
       {!loading && displayedText && (
         <div
           style={{
-            backgroundColor: '#1E1E1E',
-            padding: '24px',
-            borderRadius: '12px',
-            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-            maxWidth: '600px',
-            textAlign: 'left',
+            backgroundColor: "#1E1E1E",
+            padding: "24px",
+            borderRadius: "12px",
+            boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+            maxWidth: "600px",
+            textAlign: "left",
           }}
         >
-          <h3 style={{ fontSize: '1.75rem', fontWeight: '600', marginBottom: '16px' }}>
+          <h3
+            style={{
+              fontSize: "1.75rem",
+              fontWeight: "600",
+              marginBottom: "16px",
+            }}
+          >
             Summary
           </h3>
           <p>{displayedText}</p>
