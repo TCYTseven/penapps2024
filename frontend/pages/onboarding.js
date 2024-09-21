@@ -293,7 +293,7 @@ export default function Debrief() {
                 variant="contained"
                 color="primary"
                 sx={{ borderRadius: "12px", marginTop: 2 }}
-                onClick={() => router.push("/gyat")}
+                onClick={() => router.push("/analytics")}
               >
                 Continue
               </Button>

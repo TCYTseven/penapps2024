@@ -1,44 +1,63 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import shutil
+from pydantic import BaseModel
 import tempfile
+import shutil
 import os
-import subprocess
 from pathlib import Path
+import subprocess
+import requests
+import json
 
 app = FastAPI()
 
-# Add CORS middleware to align where the server calls are coming from
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allow your React app's origin
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    try:
-        # Create a temporary directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Save the uploaded file
-            temp_file_path = Path(temp_dir) / "input_data.csv"
-            with temp_file_path.open("wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
+class UploadRequest(BaseModel):
+    name: str
 
-            # Change to the temporary directory
+@app.post("/upload")
+async def upload_file(request: UploadRequest):
+    try:
+        file_paths = {
+            "COF": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/COF%20Historical%20Data.csv",
+            "AAPL": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/AAPL%20Historical%20Data.csv",
+            "NVDA": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/AAPL%20Historical%20Data.csv",
+        }
+
+        input_file_path = file_paths.get(request.name)
+        if not input_file_path:
+            raise HTTPException(status_code=400, detail=f"No data found for name: {request.name}")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            print(f"Processing file for: {request.name}")
+            temp_file_path = Path(temp_dir) / "input_data.csv"
+
+            response = requests.get(input_file_path)
+            if response.status_code != 200:
+                raise HTTPException(status_code=400, detail="Failed to download file.")
+
+            with open(temp_file_path, 'wb') as f:
+                f.write(response.content)
+
             original_dir = os.getcwd()
             os.chdir(temp_dir)
 
-            # Copy the dataoutput.py script to the temporary directory
-            shutil.copy2(Path(original_dir) / "../data/dataoutput.py", temp_dir)
+            # Assuming the script is in the same directory as this FastAPI file
+            script_path = Path(original_dir) / "dataoutput.py"
+            shutil.copy2(script_path, temp_dir)
 
-            # Run the dataoutput.py script
-            subprocess.run(["python", "dataoutput.py"], check=True)
+            result = subprocess.run(["python", "dataoutput.py"], capture_output=True, text=True)
+            if result.returncode != 0:
+                raise HTTPException(status_code=500, detail=f"Script error: {result.stderr}")
 
-            # Read the output files
             results = {}
             output_files = [
                 "stock_price_with_crashes.html",
@@ -48,18 +67,25 @@ async def upload_file(file: UploadFile = File(...)):
                 "crash_periods.json",
                 "processed_data.csv"
             ]
-            
-            for file_name in output_files:
-                file_path = Path(temp_dir) / file_name
-                if file_path.exists():
-                    results[file_name] = file_path.read_text()
-                else:
-                    results[file_name] = f"File {file_name} not found"
 
-            # Change back to the original directory
+            for output_file in output_files:
+                file_path = Path(temp_dir) / output_file
+                if file_path.exists():
+                    if output_file.endswith('.json'):
+                        with open(file_path, 'r') as json_file:
+                            results[output_file] = json.load(json_file)
+                    elif output_file.endswith('.csv'):
+                        with open(file_path, 'r') as csv_file:
+                            results[output_file] = csv_file.read()
+                    else:  # HTML files
+                        results[output_file] = str(file_path)  # Just store the file path for now
+                else:
+                    results[output_file] = f"File not found: {output_file}"
+
             os.chdir(original_dir)
 
         return JSONResponse(content=results)
+
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": str(e)})
 
