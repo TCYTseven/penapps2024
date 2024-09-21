@@ -1,20 +1,21 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import tempfile
 import shutil
-import os
 from pathlib import Path
 import subprocess
 import requests
 import json
+import traceback
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,9 +28,9 @@ class UploadRequest(BaseModel):
 async def upload_file(request: UploadRequest):
     try:
         file_paths = {
-            "COF": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/COF%20Historical%20Data.csv",
-            "AAPL": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/AAPL%20Historical%20Data.csv",
-            "NVDA": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/AAPL%20Historical%20Data.csv",
+            "cof": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/cof_data.csv",
+            "aapl": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/aapl_data.csv",
+            "nvda": "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/nvda_data.csv",
         }
 
         input_file_path = file_paths.get(request.name)
@@ -50,35 +51,56 @@ async def upload_file(request: UploadRequest):
             original_dir = os.getcwd()
             os.chdir(temp_dir)
 
-            # Assuming the script is in the same directory as this FastAPI file
             script_path = Path(original_dir) / "dataoutput.py"
+            if not script_path.exists():
+                raise FileNotFoundError(f"dataoutput.py not found at {script_path}")
             shutil.copy2(script_path, temp_dir)
 
+            # Run the subprocess with output redirection
             result = subprocess.run(["python", "dataoutput.py"], capture_output=True, text=True)
+            print(f"Subprocess stdout: {result.stdout}")
+            print(f"Subprocess stderr: {result.stderr}")
+
             if result.returncode != 0:
-                raise HTTPException(status_code=500, detail=f"Script error: {result.stderr}")
+                error_message = f"Script error: {result.stderr}\nOutput: {result.stdout}"
+                raise HTTPException(status_code=500, detail=error_message)
 
             results = {}
+            
+            # Check for the test file
+            test_file_path = Path(temp_dir) / "output_data" / "test_output.txt"
+            if test_file_path.exists():
+                with open(test_file_path, 'r') as test_file:
+                    results['test_output'] = test_file.read()
+            else:
+                results['test_output'] = "Test file not found"
+
             output_files = [
-                "stock_price_with_crashes.html",
-                "stock_candlestick_chart.html",
-                "correlation_heatmap.html",
-                "trading_volume.html",
+                "stock_price_with_crashes.json",
+                "stock_candlestick_chart.json",
+                "correlation_heatmap.json",
+                "trading_volume.json",
                 "crash_periods.json",
                 "processed_data.csv"
             ]
 
             for output_file in output_files:
-                file_path = Path(temp_dir) / output_file
-                if file_path.exists():
-                    if output_file.endswith('.json'):
-                        with open(file_path, 'r') as json_file:
-                            results[output_file] = json.load(json_file)
-                    elif output_file.endswith('.csv'):
-                        with open(file_path, 'r') as csv_file:
-                            results[output_file] = csv_file.read()
-                    else:  # HTML files
-                        results[output_file] = str(file_path)  # Just store the file path for now
+                temp_file_path = Path(temp_dir) / "output_data" / output_file
+                if temp_file_path.exists():
+                    permanent_file_path = Path(original_dir) / "output_data" / output_file
+                    permanent_file_path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(temp_file_path, permanent_file_path)
+                    print(f"Copied {output_file} to permanent location: {permanent_file_path}")
+                    
+                    try:
+                        if output_file.endswith('.json'):
+                            with open(permanent_file_path, 'r') as json_file:
+                                results[output_file] = json.load(json_file)
+                        elif output_file.endswith('.csv'):
+                            with open(permanent_file_path, 'r') as csv_file:
+                                results[output_file] = csv_file.read()
+                    except Exception as e:
+                        results[output_file] = f"Error reading file: {str(e)}"
                 else:
                     results[output_file] = f"File not found: {output_file}"
 
@@ -87,8 +109,13 @@ async def upload_file(request: UploadRequest):
         return JSONResponse(content=results)
 
     except Exception as e:
-        return JSONResponse(status_code=500, content={"message": str(e)})
+        error_detail = {
+            "message": str(e),
+            "traceback": traceback.format_exc()
+        }
+        print(f"Error occurred: {error_detail}")  # Console logging
+        return JSONResponse(status_code=500, content=error_detail)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")

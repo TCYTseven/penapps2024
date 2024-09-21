@@ -58,6 +58,25 @@ export default function Debrief() {
     }
   };
 
+  const continueDashboard = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: searchParams.get("data") }),
+      });
+      if (response.ok) {
+        router.push("/analytics");
+      } else {
+        console.log("failed to get data from the chosen company");
+      }
+    } catch (e) {
+      console.error("there was an error", e);
+    }
+  };
+
   // Summarize CSV data using Cerebras API
   const summarizeCsv = async (csvText) => {
     try {
@@ -310,7 +329,7 @@ export default function Debrief() {
                 variant="contained"
                 color="primary"
                 sx={{ borderRadius: "12px", marginTop: 2 }}
-                onClick={() => router.push("/analytics")}
+                onClick={() => continueDashboard()}
               >
                 Continue
               </Button>
