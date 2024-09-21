@@ -3,14 +3,14 @@
 import { useState, useRef } from "react";
 import { RocketIcon, UploadIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation"; // Adjust this import if you're using a different version of Next.js
+import { useRouter } from "next/navigation";
 
 export default function UploadCsv() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
-  const router = useRouter(); // Initialize the router
+  const router = useRouter();
 
   const handleFileUpload = (event) => {
     const uploadedFile = event.target.files?.[0];
@@ -37,36 +37,67 @@ export default function UploadCsv() {
           clearInterval(progressTimer);
           setTimeout(() => {
             setUploading(false);
-            router.push("/onboarding"); // Redirect after animation
+            router.push("/onboarding");
           }, 500);
           return 100;
         }
         return oldProgress + 25;
       });
-    }, 300); // Quick progress speed for animation effect
+    }, 300);
   };
 
   const handleClick = () => {
     fileInputRef.current.click();
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center h-screen p-6 animated-bg">
-      <div className="relative mb-12 text-center">
-        <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-7xl font-extrabold animate-pulse">
-          Finance Rocket
-        </h1>
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-600 opacity-30 rounded-lg blur-sm"></div>
-      </div>
-      <p className="text-gray-400 text-lg mt-2 text-center">
-        Your Financial Future, Ready for Launch
-      </p>
+  const handleSampleSelect = () => {
+    router.push("/onboarding");
+  };
 
+  return (
+    <motion.div
+      className="flex flex-col items-center justify-center min-h-screen p-8 bg-gray-900 text-white"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
+      {/* Header Section */}
+      <header className="mb-12 text-center">
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: "50%",
+            border: "4px solid gray",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            margin: "0 auto 1rem",
+            fontSize: "1.5rem",
+            color: "gray",
+            fontWeight: 800,
+          }}
+        >
+          1
+        </div>
+        <motion.h1
+          className="text-6xl font-bold mb-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.2 }}
+        >
+          Knowtions
+        </motion.h1>
+        <h2 className="text-2xl italic text-gray-400">
+          It's hard to not know your financial future - let us know for you.
+        </h2>
+      </header>
+
+      {/* Upload Area */}
       <div
-        className={`border-2 border-dashed rounded-xl p-12 w-104 h-56 flex flex-col justify-center items-center cursor-pointer transition-transform transform hover:scale-105 hover:border-opacity-80 shadow-lg hover:shadow-purple-400 hover:shadow-xl ${
-          file ? "border-white" : "border-gray-600"
+        className={`border-2 border-dashed rounded-xl p-16 w-full max-w-md flex flex-col justify-center items-center cursor-pointer transition-transform transform hover:scale-105 hover:border-opacity-80 ${
+          file ? "border-blue-500" : "border-gray-600"
         }`}
-        style={{ boxShadow: "0 4px 20px rgba(186, 85, 211, 0.5)" }} // Light purple drop shadow
         onClick={handleClick}
         onDrop={handleDrop}
         onDragOver={(event) => event.preventDefault()}
@@ -74,12 +105,8 @@ export default function UploadCsv() {
         {!file && !uploading && (
           <>
             <UploadIcon className="text-gray-400 w-16 h-16 mb-4" />
-            <label className="text-gray-400 text-lg mb-2 text-center">
-              Drag and drop a CSV file
-            </label>
-            <label className="text-gray-400 text-sm mb-4 text-center">
-              or click anywhere to select from your desktop
-            </label>
+            <p className="text-gray-400 text-lg mb-2">Drag and drop a CSV file</p>
+            <p className="text-gray-500 text-sm">or click to select from your desktop</p>
             <input
               type="file"
               accept=".csv"
@@ -92,8 +119,8 @@ export default function UploadCsv() {
 
         {file && !uploading && (
           <div className="text-center">
-            <RocketIcon className="text-gray-400 w-16 h-16 mb-4" />
-            <p className="text-gray-400 text-lg">Launching!!!</p>
+            <RocketIcon className="text-blue-500 w-16 h-16 mb-4" />
+            <p className="text-blue-500 text-lg">Preparing to Upload...</p>
           </div>
         )}
 
@@ -105,44 +132,64 @@ export default function UploadCsv() {
             className="flex flex-col items-center justify-center"
           >
             <motion.div
-              className="rounded-full w-20 h-20 bg-white flex items-center justify-center"
+              className="rounded-full w-20 h-20 bg-blue-500 flex items-center justify-center mb-4"
               initial={{ scale: 0 }}
-              animate={{ scale: 1.2 }}
+              animate={{ scale: 1.3 }}
               transition={{ type: "spring", stiffness: 100 }}
             >
-              <RocketIcon className="text-black w-10 h-10" />
+              <RocketIcon className="text-white w-8 h-8" />
             </motion.div>
             <motion.div
-              className="bg-gray-500 mt-4 rounded-xl h-2 w-72"
+              className="bg-gray-700 rounded-full h-2 w-80 overflow-hidden"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.4 }}
             >
-              <div className="bg-white h-full rounded-xl"></div>
+              <div className="bg-blue-500 h-full"></div>
             </motion.div>
+            <p className="mt-2 text-gray-400">Uploading {progress}%</p>
           </motion.div>
         )}
       </div>
 
-      <style jsx>{`
-        .animated-bg {
-          background: linear-gradient(270deg, #0d1117, #161b22, #21262d, #161b22);
-          background-size: 400% 400%;
-          animation: gradientAnimation 15s ease infinite;
-        }
+      {/* Sample Data Buttons */}
+      <div className="mt-8 w-full max-w-md">
+        <label className="block text-lg text-gray-400 mb-4">
+          Or use sample data from:
+        </label>
+        <div className="space-y-3">
+          <button
+            onClick={handleSampleSelect}
+            className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
+          >
+            Capital One
+          </button>
+          <button
+            onClick={handleSampleSelect}
+            className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
+          >
+            Lorem Ipsum
+          </button>
+          <button
+            onClick={handleSampleSelect}
+            className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
+          >
+            Ipsum Lorem
+          </button>
+          <div style={{ height: 20 }}></div>
+        </div>
+      </div>
 
-        @keyframes gradientAnimation {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
+      {/* Optional: Custom Styles */}
+      <style jsx>{`
+        .bg-gray-900 {
+          background-color: #1a202c;
+        }
+        .form-radio:checked {
+          border-color: #3b82f6;
+          background-color: #3b82f6;
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }
