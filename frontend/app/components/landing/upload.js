@@ -17,7 +17,7 @@ export default function UploadCsv() {
   const router = useRouter();
 
   const handleFileUpload = (event) => {
-    event.preventDefault(); // Prevent default behavior
+    event.preventDefault();
     const uploadedFile = event.target.files?.[0];
     if (uploadedFile) {
       setFile(uploadedFile);
@@ -51,7 +51,7 @@ export default function UploadCsv() {
           clearInterval(progressTimer);
           setTimeout(() => {
             setUploading(false);
-            router.push("/onboarding");
+            router.push("/onboarding?data=custom");
           }, 500);
           return 100;
         }
@@ -64,8 +64,8 @@ export default function UploadCsv() {
     fileInputRef.current.click();
   };
 
-  const handleSampleSelect = () => {
-    router.push("/onboarding");
+  const handleSampleSelect = (selection) => {
+    router.push(`/onboarding?data=${selection}`); // Ensure the correct parameter is appended
   };
 
   return (
@@ -136,7 +136,7 @@ export default function UploadCsv() {
         )}
 
         {file && !uploading && (
-          <div className="text-center">
+          <div className="flex flex-col items-center">
             <RocketIcon className="text-blue-500 w-16 h-16 mb-4" />
             <p className="text-blue-500 text-lg">Preparing to Upload...</p>
           </div>
@@ -177,37 +177,26 @@ export default function UploadCsv() {
         </label>
         <div className="space-y-3">
           <button
-            onClick={handleSampleSelect}
+            onClick={() => handleSampleSelect("cof")}
             className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
           >
             Capital One
           </button>
           <button
-            onClick={handleSampleSelect}
+            onClick={() => handleSampleSelect("aapl")}
             className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
           >
-            Lorem Ipsum
+            Apple
           </button>
           <button
-            onClick={handleSampleSelect}
+            onClick={() => handleSampleSelect("nvda")}
             className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
           >
-            Ipsum Lorem
+            Nvidia
           </button>
           <div style={{ height: 20 }}></div>
         </div>
       </div>
-
-      {/* Optional: Custom Styles */}
-      <style jsx>{`
-        .bg-gray-900 {
-          background-color: #1a202c;
-        }
-        .form-radio:checked {
-          border-color: #3b82f6;
-          background-color: #3b82f6;
-        }
-      `}</style>
     </motion.div>
   );
 }
