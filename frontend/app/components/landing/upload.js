@@ -13,6 +13,7 @@ export default function UploadCsv() {
   const router = useRouter();
 
   const handleFileUpload = (event) => {
+    event.preventDefault();
     const uploadedFile = event.target.files?.[0];
     if (uploadedFile) {
       setFile(uploadedFile);
@@ -118,11 +119,12 @@ export default function UploadCsv() {
         )}
 
         {file && !uploading && (
-          <div className="text-center">
+          <div className="flex flex-col items-center">
             <RocketIcon className="text-blue-500 w-16 h-16 mb-4" />
             <p className="text-blue-500 text-lg">Preparing to Upload...</p>
           </div>
         )}
+
 
         {uploading && (
           <motion.div
