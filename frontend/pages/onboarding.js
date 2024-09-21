@@ -4,26 +4,41 @@ import { useState, useEffect } from "react";
 import { CircularProgress, Typography, Container, Box, Card, CardContent, Button } from "@mui/material";
 import { motion } from "framer-motion";
 import Cerebras from "@cerebras/cerebras_cloud_sdk";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Debrief() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [displayedText, setDisplayedText] = useState("");
-  const [showButton, setShowButton] = useState(false); // Moved outside JSX
+  const [showButton, setShowButton] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Initialize Cerebras client
   const client = new Cerebras({
     apiKey: "csk-3k6ykhjmckwr5t5244pm2eede45ppvtkrc5r9nrhe6mnjedr", // Use environment variable
   });
 
+  // Determine the correct CSV URL based on user selection
+  const getCsvUrl = () => {
+    const selectedData = searchParams.get("data");
+    if (selectedData === "aapl") {
+      return "https://raw.githubusercontent.com/TCYTseven/penapps24data/main/aapl_data.csv";
+    } else if (selectedData === "nvda") {
+      return "https://raw.githubusercontent.com/TCYTseven/penapps24data/main/nvda_data.csv";
+    } else {
+      return "https://raw.githubusercontent.com/TCYTseven/penapps24data/main/cof_data.csv"; // Default to Capital One
+    }
+  };
+
   // Fetch CSV data
   const fetchCsvData = async () => {
     try {
-      const response = await fetch(
-        "https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/COF%20Historical%20Data.csv"
-      );
+      const csvUrl = getCsvUrl();
+      if (!csvUrl) {
+        throw new Error("Invalid data parameter.");
+      }
+      const response = await fetch(csvUrl);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -48,7 +63,7 @@ export default function Debrief() {
           {
             role: "system",
             content:
-              "ALWAYS START OFF BY RESPONDING WITH 'Yyooo - before we continue, let me understand your situation:' no typo there! - NEVER say the data ranges from x to y. leave that part OUT. Include specific numbers from the data to show you know what your talking about BUT NEVER mention a specific date range the data includes. You are an expert financial analyst. Summarize the financial data. Do NOT include predictions. NEVER SAY THE WORD UNDEFINED EVER. Maximum words is 250. Don't use any special characters like colons, asterisks, or markdown. Plain text only.",
+              "ALWAYS START OFF BY RESPONDING WITH 'Yyooo - before we continue, let me understand your situation:' no typo there! - NEVER say the data ranges from x to y. leave that part OUT. Include specific numbers from the data to show you know what you're talking about BUT NEVER mention a specific date range the data includes. You are an expert financial analyst. Summarize the financial data. Do NOT include predictions. NEVER SAY THE WORD UNDEFINED EVER. Maximum words is 250. Don't use any special characters like colons, asterisks, or markdown. Plain text only.",
           },
           {
             role: "user",
@@ -70,13 +85,19 @@ export default function Debrief() {
 
   useEffect(() => {
     const parseAndSummarizeCsv = async () => {
+      // Check if searchParams is available
+      if (!searchParams) {
+        return;
+      }
+
       const csvData = await fetchCsvData();
       if (csvData) {
         summarizeCsv(csvData);
       }
     };
+
     parseAndSummarizeCsv();
-  }, []);
+  }, [searchParams]); // Add searchParams as a dependency
 
   useEffect(() => {
     if (summary) {
@@ -93,16 +114,13 @@ export default function Debrief() {
     }
   }, [summary]);
 
-  // Moved useEffect for showButton outside JSX
+  // Show button after a delay
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowButton(true);
     }, 10000);
     return () => clearTimeout(timer);
   }, []);
-
-  // Determine if text generation is complete
-  const isTextComplete = summary && displayedText === summary;
 
   return (
     <Box
@@ -204,14 +222,13 @@ export default function Debrief() {
             </motion.div>
           )}
 
-          {/* Move the button outside of the JSX conditional blocks */}
           {showButton && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
               <Button
                 variant="contained"
                 color="primary"
                 sx={{ borderRadius: "12px", marginTop: 2 }}
-                onClick={() => router.push("/gyat")}
+                onClick={() => router.push("/analytics")}
               >
                 Continue
               </Button>
