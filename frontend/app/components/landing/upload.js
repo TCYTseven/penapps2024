@@ -4,15 +4,11 @@ import { useState, useRef } from "react";
 import { RocketIcon, UploadIcon } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 
 export default function UploadCsv() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState(null);
-  const [error, setError] = useState(null);
-  const [selectedCompany, setSelectedCompany] = useState(null);
   const fileInputRef = useRef(null);
   const router = useRouter();
 
@@ -21,7 +17,7 @@ export default function UploadCsv() {
     const uploadedFile = event.target.files?.[0];
     if (uploadedFile) {
       setFile(uploadedFile);
-      startUpload(uploadedFile);
+      startUpload();
     }
   };
 
@@ -30,21 +26,12 @@ export default function UploadCsv() {
     const uploadedFile = event.dataTransfer.files?.[0];
     if (uploadedFile) {
       setFile(uploadedFile);
-      startUpload(uploadedFile);
+      startUpload();
     }
   };
 
-  const startUpload = async () => {
+  const startUpload = () => {
     setUploading(true);
-    const response = await fetch(
-      "http://localhost:8000/upload",
-      { name: "COF" },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
     let progressTimer = setInterval(() => {
       setProgress((oldProgress) => {
         if (oldProgress >= 100) {
@@ -67,7 +54,7 @@ export default function UploadCsv() {
   const handleSampleSelect = (selection) => {
     router.push(`/onboarding?data=${selection}`); // Ensure the correct parameter is appended
   };
-
+  
   return (
     <motion.div
       className="flex flex-col items-center justify-center min-h-screen p-8 bg-gray-900 text-white"
@@ -119,12 +106,8 @@ export default function UploadCsv() {
         {!file && !uploading && (
           <>
             <UploadIcon className="text-gray-400 w-16 h-16 mb-4" />
-            <p className="text-gray-400 text-lg mb-2">
-              Drag and drop a CSV file
-            </p>
-            <p className="text-gray-500 text-sm">
-              or click to select from your desktop
-            </p>
+            <p className="text-gray-400 text-lg mb-2">Drag and drop a CSV file</p>
+            <p className="text-gray-500 text-sm">or click to select from your desktop</p>
             <input
               type="file"
               accept=".csv"

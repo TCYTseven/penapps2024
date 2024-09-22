@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  CircularProgress,
-  Typography,
-  Container,
-  Box,
-  Card,
-  CardContent,
-  Button,
-} from "@mui/material";
+import { CircularProgress, Typography, Container, Box, Card, CardContent, Button } from "@mui/material";
 import { motion } from "framer-motion";
 import Cerebras from "@cerebras/cerebras_cloud_sdk";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -55,25 +47,6 @@ export default function Debrief() {
     } catch (error) {
       console.error("Error fetching CSV file:", error);
       return null;
-    }
-  };
-
-  const continueDashboard = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: searchParams.get("data") }),
-      });
-      if (response.ok) {
-        router.push("/analytics");
-      } else {
-        console.log("failed to get data from the chosen company");
-      }
-    } catch (e) {
-      console.error("there was an error", e);
     }
   };
 
@@ -172,31 +145,10 @@ export default function Debrief() {
         }}
       >
         <Box textAlign="center" mb={4}>
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1 }}
-            >
-              <Typography
-                variant="h6"
-                color="textSecondary"
-                gutterBottom
-                sx={{ fontWeight: 800 }}
-              >
-                <Box
-                  component="span"
-                  sx={{
-                    fontSize: "1.5rem",
-                    color: "gray",
-                    display: "inline-flex",
-                    alignItems: "center",
-                  }}
-                >
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+              <Typography variant="h6" color="textSecondary" gutterBottom sx={{ fontWeight: 800 }}>
+                <Box component="span" sx={{ fontSize: "1.5rem", color: "gray", display: "inline-flex", alignItems: "center" }}>
                   <Box
                     component="span"
                     sx={{
@@ -215,51 +167,21 @@ export default function Debrief() {
                 </Box>
               </Typography>
             </motion.div>
-            <Typography
-              variant="h2"
-              component="h1"
-              gutterBottom
-              sx={{ fontWeight: 800 }}
-            >
+            <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 800 }}>
               Knowtions
             </Typography>
-            <Typography
-              variant="h5"
-              color="white"
-              gutterBottom
-              sx={{ fontWeight: 800 }}
-            >
+            <Typography variant="h5" color="white" gutterBottom sx={{ fontWeight: 800 }}>
               CSV Debrief
             </Typography>
           </motion.div>
         </Box>
 
-        <Box
-          display="flex"
-          justifyContent="center"
-          flexDirection="column"
-          alignItems="center"
-        >
+        <Box display="flex" justifyContent="center" flexDirection="column" alignItems="center">
           {loading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Card
-                sx={{
-                  bgcolor: "#1e1e1e",
-                  color: "#ffffff",
-                  textAlign: "center",
-                  padding: 2,
-                }}
-              >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+              <Card sx={{ bgcolor: "#1e1e1e", color: "#ffffff", textAlign: "center", padding: 2 }}>
                 <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    sx={{ fontWeight: 700 }}
-                  >
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
                     Loading analysis...
                   </Typography>
                   <CircularProgress color="primary" />
@@ -277,11 +199,7 @@ export default function Debrief() {
             >
               <Card sx={{ bgcolor: "#1e1e1e", color: "#ffffff", padding: 2 }}>
                 <CardContent>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    sx={{ fontWeight: 700 }}
-                  >
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
                     Summary
                   </Typography>
                   <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
@@ -293,25 +211,10 @@ export default function Debrief() {
           )}
 
           {!loading && !displayedText && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Card
-                sx={{
-                  bgcolor: "#1e1e1e",
-                  color: "#ffffff",
-                  textAlign: "center",
-                  padding: 2,
-                }}
-              >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+              <Card sx={{ bgcolor: "#1e1e1e", color: "#ffffff", textAlign: "center", padding: 2 }}>
                 <CardContent>
-                  <Typography
-                    variant="h6"
-                    color="textSecondary"
-                    sx={{ fontWeight: 700 }}
-                  >
+                  <Typography variant="h6" color="textSecondary" sx={{ fontWeight: 700 }}>
                     No data available.
                   </Typography>
                 </CardContent>
@@ -320,16 +223,12 @@ export default function Debrief() {
           )}
 
           {showButton && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
               <Button
                 variant="contained"
                 color="primary"
                 sx={{ borderRadius: "12px", marginTop: 2 }}
-                onClick={() => continueDashboard()}
+                onClick={() => router.push("/analytics")}
               >
                 Continue
               </Button>
