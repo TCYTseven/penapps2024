@@ -1,0 +1,4 @@
+requests
+beautifulsoup4
+cerebras-cloud-sdk
+flask
