@@ -16,7 +16,7 @@ export default function Debrief() {
 
   // Initialize Cerebras client
   const client = new Cerebras({
-    apiKey: "csk-3k6ykhjmckwr5t5244pm2eede45ppvtkrc5r9nrhe6mnjedr", // Use environment variable
+    apiKey: "csk-5p6nfx98y94mrrr3nv4kep8nh2yttwkcc9f828medv8p498y", // Use environment variable
   });
 
   // Determine the correct CSV URL based on user selection
@@ -82,14 +82,14 @@ export default function Debrief() {
           {
             role: "system",
             content:
-              "ALWAYS START OFF BY RESPONDING WITH 'Yyooo - before we continue, let me understand your situation:' no typo there! - NEVER say the data ranges from x to y. leave that part OUT. Include specific numbers from the data to show you know what you're talking about BUT NEVER mention a specific date range the data includes. You are an expert financial analyst. Summarize the financial data. Do NOT include predictions. NEVER SAY THE WORD UNDEFINED EVER. Maximum words is 250. Don't use any special characters like colons, asterisks, or markdown. Plain text only.",
+              "You are an expert financial analyst. Using only the provided data, summarize the financial information by including specific numbers to demonstrate your understanding. Do not mention any date ranges or specific time periods. Never announce the number of entries the data has. Avoid making predictions and do not use the word 'undefined'. Speak coherent sentences. Limit your summary to a maximum of 250 words and use plain text without any special characters such as colons, asterisks, or markdown."
           },
           {
             role: "user",
             content: `Here's the CSV data: ${truncatedCsvText}`,
           },
         ],
-        temperature: 0.7,
+        temperature: 0.5,
       });
 
       const result = completionCreateResponse.choices[0].message.content;
@@ -189,8 +189,8 @@ export default function Debrief() {
             <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 800 }}>
               Knowtions
             </Typography>
-            <Typography variant="h5" color="white" gutterBottom sx={{ fontWeight: 800 }}>
-              CSV Debrief
+            <Typography variant="h5" color="white" gutterBottom sx={{ fontWeight: 600 }}>
+              Dear valued customer, here is our understanding of your situation!
             </Typography>
           </motion.div>
         </Box>
