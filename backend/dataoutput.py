@@ -1,28 +1,20 @@
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from datetime import timedelta
 import json
 import os
 import sys
+import csv
+import plotly.io as pio
 
 # Print current working directory and Python version for debugging
 print(f"Current working directory: {os.getcwd()}")
 print(f"Python version: {sys.version}")
 
 # Create a directory to store outputs
-output_dir = os.path.abspath('output_data')
+output_dir = os.path.abspath('C:\\Users\\zheng\\OneDrive\\Desktop\\Hackathon\\penapps2024\\backend\\output_data')
 os.makedirs(output_dir, exist_ok=True)
 print(f"Output directory: {output_dir}")
-
-# Create a simple text file for testing
-test_file_path = os.path.join(output_dir, 'test_output.txt')
-try:
-    with open(test_file_path, 'w') as test_file:
-        test_file.write("This is a test output file.")
-    print(f"Test file created successfully at {test_file_path}")
-except Exception as e:
-    print(f"Error creating test file: {e}")
 
 # Read the CSV file
 try:
@@ -91,37 +83,62 @@ def save_json(data, filename):
     except Exception as e:
         print(f"Error saving {full_path}: {e}")
 
-# Create and save plots
 # Stock price with crashes
-fig = px.line(df, x=df.index, y='Price', title='Stock Price with Crashes')
-for start, end in crashes:
-    fig.add_vrect(x0=start, x1=end, fillcolor="red", opacity=0.2, layer="below", line_width=0)
-save_json(fig.to_json(), 'stock_price_with_crashes.json')
+fig = go.Figure()
 
-# Candlestick chart
-fig = go.Figure(data=[go.Candlestick(x=df.index,
-                open=df['Open'],
-                high=df['High'],
-                low=df['Low'],
-                close=df['Price'])])
-fig.update_layout(title='Stock Candlestick Chart')
-save_json(fig.to_json(), 'stock_candlestick_chart.json')
+# Plot the entire price line in blue
+fig.add_trace(go.Scatter(x=df.index, y=df['Price'], mode='lines', name='Stock Price', line=dict(color='blue')))
 
-# Correlation heatmap
-correlation_matrix = df[['Price', 'Open', 'High', 'Low', 'Vol.', 'Change %']].corr()
-fig = px.imshow(correlation_matrix, text_auto=True, aspect="auto")
-fig.update_layout(title='Correlation Heatmap')
-save_json(fig.to_json(), 'correlation_heatmap.json')
+# Overlay crash periods in red
+for crash_start, crash_end in crashes:
+    mask_crash = (df.index >= crash_start) & (df.index <= crash_end)
+    fig.add_trace(go.Scatter(x=df.index[mask_crash], y=df['Price'][mask_crash], mode='lines', name='Crash Period', line=dict(color='red', width=2)))
 
-# Trading volume over time
-fig = px.bar(df, x=df.index, y='Vol.', title='Trading Volume Over Time')
-save_json(fig.to_json(), 'trading_volume.json')
+fig.update_layout(
+    title='Stock Closing Price Over Time (with Crash Periods)',
+    xaxis_title='Date',
+    yaxis_title='Price',
+    showlegend=True
+)
 
-# Save crash periods to JSON
-crash_periods = [{"start": str(start), "end": str(end)} for start, end in crashes]
-save_json(crash_periods, 'crash_periods.json')
+# Create output directory if it doesn't exist
+output_dir = os.path.abspath('C:\\Users\\zheng\\OneDrive\\Desktop\\Hackathon\\penapps2024\\backend\\output_data')
+os.makedirs(output_dir, exist_ok=True)
 
-# Output to CSV
+# Save the figure as HTML
+html_path = os.path.join(output_dir, 'stock_price_with_crashes.html')
+fig.write_html(html_path)
+print(f"Stock price with crashes graph saved to {html_path}")
+
+# Save crash periods to CSV with full row data for start and end dates
+crash_periods_csv = os.path.join(output_dir, 'crash_periods.csv')
+
+try:
+    with open(crash_periods_csv, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Date', 'Price', 'Open', 'High', 'Low', 'Vol.', 'Change %'])  # Update with your desired columns
+        
+        for crash_start, crash_end in crashes:
+            # Get all rows that are part of the crash period
+            mask_crash = (df.index >= crash_start) & (df.index <= crash_end)
+            crash_rows = df[mask_crash]
+
+            # Write each row in the crash period to the CSV
+            for index, row in crash_rows.iterrows():
+                writer.writerow([index, row['Price'], row['Open'], row['High'], row['Low'], row['Vol.'], row['Change %']])
+
+    print(f"Crash periods with full data successfully written to {crash_periods_csv}")
+except Exception as e:
+    print(f"Error writing crash periods CSV: {e}")
+
+# Verify the crash_periods.csv file was created
+if os.path.exists(crash_periods_csv):
+    print(f"Verified: {crash_periods_csv} exists")
+    print(f"File size: {os.path.getsize(crash_periods_csv)} bytes")
+else:
+    print(f"Error: {crash_periods_csv} was not created")
+
+# Output processed data to CSV
 csv_filename = os.path.join(output_dir, 'processed_data.csv')
 try:
     df.to_csv(csv_filename)

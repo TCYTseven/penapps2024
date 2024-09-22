@@ -83,6 +83,8 @@ async def upload_file(request: UploadRequest):
                 "crash_periods.json",
                 "processed_data.csv"
             ]
+            
+            #data is in CSV now. 
 
             for output_file in output_files:
                 temp_file_path = Path(temp_dir) / "output_data" / output_file
