@@ -20,6 +20,7 @@ Backend: Scikit-learn, Python FastAPI, Cerebras Cloud, Propel Auth
 **Eligible Prizes:** Best Use of Statistics, Most Technically Complex Hack, Most Creative Hack, Best Use of AI 
 
 ## Raw Stock Data
+### Via [https://www.investing.com/]([url](https://www.investing.com/))
 Data Capital One: [cof_data.csv](https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/cof_data.csv)
 
 Apple:  [aapl_data.csv](https://raw.githubusercontent.com/TCYTseven/penapps24data/refs/heads/main/aapl_data.csv)
